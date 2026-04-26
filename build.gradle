@@ -13,6 +13,12 @@ dependencies {
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation("com.sparkjava:spark-core:2.9.4")
+    implementation("com.google.code.gson:gson:2.13.2")
+    implementation("org.slf4j:slf4j-api:2.0.17")
+    implementation("org.slf4j:slf4j-simple:2.0.17")
+    implementation("com.microsoft.sqlserver:mssql-jdbc:13.4.0.jre8")
+    implementation("com.zaxxer:HikariCP:7.0.2")
 }
 
 test {
