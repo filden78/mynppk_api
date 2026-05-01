@@ -31,27 +31,29 @@ public class App {
     public static void main(String[] args) {
         logger = LoggerFactory.getLogger(App.class);
         logger.info("Server init...");
-        properties  = new Properties();
-        propFile = new File("app.properties");
 
-        if(!propFile.exists()){
-            logger.warn("Config not found! Create default config.");
-            try(OutputStream os = new FileOutputStream(propFile)) {
-                propFile.createNewFile();
-                config = AppConfig.loadConfigFromProperty(properties);
-                properties.store(os,"");
+
+        if(args.length!=0){
+            if(args[0].contains(".properties")){
+                try {
+                    config = AppConfig.loadConfigFromPath(args[0]);
+                }
+                catch (IOException e){
+                    logger.error("{}", e.getMessage());
+                }
             }
-            catch (IOException e){
+            else logger.warn("Unknows arguments:{}", (Object) args);
+        }
+        else{
+            try {
+                File configFile = new File("app.config");
+                if (!configFile.exists()){
+                    configFile.createNewFile();
+                }
+                config = AppConfig.loadConfigFromPath(configFile.getPath());
+            } catch (IOException e) {
                 logger.error(e.getMessage());
             }
-        }
-        try(InputStream os = new FileInputStream(propFile)){
-            logger.info("Load config");
-            properties.load(os);
-            config = AppConfig.loadConfigFromProperty(properties);
-        }
-        catch (IOException e){
-            logger.error(e.getMessage());
         }
         try{
             db = dbConnection.getInstance(config.hikariConfig());
@@ -67,10 +69,11 @@ public class App {
             userDAO = new UserDAO(db);
 
             endpoints = new Endpoints(roleDAO, userDAO, studentDAO, groupDAO, teacherDAO, historyDAO, teacherGroupDAO);
-            endpoints.registerEndpoints();
+
 
             Spark.port(config.port);
             Spark.threadPool(config.max_thread,config.min_thread, config.timeout);
+            endpoints.registerEndpoints();
             logger.info("Server started : port:{}, ip:{}",config.port,"0.0.0.0");
             Spark.init();
         }
