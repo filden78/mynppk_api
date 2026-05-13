@@ -8,6 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import spark.Spark;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -358,6 +360,27 @@ public class Endpoints {
             }
         });
 
+        // GET /api/students/user/:id - получить студента по user_ID
+        Spark.get("/api/students/user/:id",(req,res)->{
+            int id = Integer.parseInt(req.params(":id"));
+            logger.info("GET /api/students/{} - Fetching student by user_ID", id);
+            JsonUtil.setJsonResponse(res);
+            try {
+                java.util.Optional<Student> student = studentDAO.findByUserId(id);
+                if (student.isPresent()) {
+                    res.status(200);
+                    return JsonUtil.successResponse(student.get());
+                } else {
+                    res.status(404);
+                    return JsonUtil.errorResponse("Student not found with user_id: " + id, 404);
+                }
+            } catch (Exception e) {
+                logger.error("Error fetching student by user_id: {}", id, e);
+                res.status(500);
+                return JsonUtil.errorResponse("Database error: " + e.getMessage(), 500);
+            }
+        });
+
         // GET /api/students/group/:groupId - получить студентов по группе
         Spark.get("/api/students/group/:groupId", (req, res) -> {
             int groupId = Integer.parseInt(req.params(":groupId"));
@@ -380,6 +403,23 @@ public class Endpoints {
             JsonUtil.setJsonResponse(res);
             try {
                 List<Student> dutyStudents = studentDAO.findActiveDutyStudents();
+                res.status(200);
+                return JsonUtil.successResponse(dutyStudents);
+            } catch (Exception e) {
+                logger.error("Error fetching duty students", e);
+                res.status(500);
+                return JsonUtil.errorResponse("Database error: " + e.getMessage(), 500);
+            }
+        });
+        Spark.get("/api/students/duty/current/:groupId", (req,res)->{
+            int groupId = Integer.parseInt(req.params(":groupId"));
+            logger.info("GET /api/students/duty/active - Fetching current duty pair in group {}",groupId);
+            JsonUtil.setJsonResponse(res);
+            try {
+                List<Student> tempdutyStudents = studentDAO.findByGroupId(groupId);
+                List<Student> dutyStudents = new ArrayList<>();
+                tempdutyStudents.stream().sorted(Comparator.comparing(Student::getCountDuty)).limit(2).forEach(dutyStudents::add);
+
                 res.status(200);
                 return JsonUtil.successResponse(dutyStudents);
             } catch (Exception e) {

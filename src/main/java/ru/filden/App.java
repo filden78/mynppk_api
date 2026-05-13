@@ -15,8 +15,7 @@ import java.util.Properties;
 
 
 public class App {
-    static Properties properties;
-    static File propFile;
+
     static Logger logger;
     static AppConfig config;
     static dbConnection db;

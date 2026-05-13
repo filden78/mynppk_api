@@ -59,6 +59,22 @@ public class StudentDAO implements BaseDAO<Student, Integer> {
             throw new RuntimeException("Error finding student by id", e);
         }
     }
+    public Optional<Student> findByUserId(Integer id){
+        String sql = "SELECT * FROM students WHERE user_id = ?";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapRowToStudent(rs));
+                }
+            }
+            return Optional.empty();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding student by user_id", e);
+        }
+    }
+
 
     @Override
     public List<Student> findAll() {
